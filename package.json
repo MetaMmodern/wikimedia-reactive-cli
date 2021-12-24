@@ -25,6 +25,7 @@
   },
   "homepage": "https://github.com/MetaMmodern/wikimedia-reactive-cli#readme",
   "dependencies": {
+    "@types/node": "^17.0.4",
     "nodemon": "^2.0.15",
     "ts-node": "^10.4.0",
     "typescript": "^4.5.4"
