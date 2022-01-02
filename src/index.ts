@@ -1,1 +1,1 @@
-import "./CLI";
+import "./wikiSubscriber";
