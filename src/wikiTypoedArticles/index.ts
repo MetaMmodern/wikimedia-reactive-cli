@@ -1,8 +1,8 @@
 import WikimediaStream from "wikimedia-streams";
 import { Observable } from "rxjs";
-import { map, tap, filter } from "rxjs/operators";
+import { filter } from "rxjs/operators";
 import MediaWikiRecentChangeEditEvent from "wikimedia-streams/build/streams/MediaWikiRecentChangeEvent";
-import TypoedArticlesStatistics from "./valueType"
+import TypoedArticlesStatistics from "./TypoedArticlesStatistics"
 
 const wikiTypoedArticles: Map<string, number> = new Map();
 const finalValue: TypoedArticlesStatistics = new TypoedArticlesStatistics;
@@ -28,22 +28,11 @@ const updateWikiTypoedArticles = (data: MediaWikiRecentChangeEditEvent) => {
     return finalValue;
 };
 
-const wikiTypoedArticlesStream: Observable<MediaWikiRecentChangeEditEvent> = observable
+export const wikiTypoedArticlesStream: Observable<MediaWikiRecentChangeEditEvent> = observable
     .pipe(
-        // filter((data: MediaWikiRecentChangeEditEvent) =>
-        //     data.wiki == 'enwiki'
-        // ),
         filter((data: MediaWikiRecentChangeEditEvent) =>
             data.type == "edit" ? data.minor : false
-        ),
-        map(_ => _)
+        )
     );
 
 export let wikiTypoedArticlesSubscription = wikiTypoedArticlesStream.subscribe(updateWikiTypoedArticles);
-
-setTimeout(() => {
-    wikiTypoedArticlesSubscription.unsubscribe();
-    setTimeout(() => {
-        wikiTypoedArticlesSubscription = wikiTypoedArticlesStream.subscribe(updateWikiTypoedArticles);
-    }, 500);
-}, 3000);
