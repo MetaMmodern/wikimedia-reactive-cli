@@ -35,4 +35,5 @@ export const wikiTypoedArticlesStream: Observable<MediaWikiRecentChangeEditEvent
         )
     );
 
-export let wikiTypoedArticlesSubscription = wikiTypoedArticlesStream.subscribe(updateWikiTypoedArticles);
+const GenerateWikiTypoedArticlesSubscription = () => wikiTypoedArticlesStream.subscribe(updateWikiTypoedArticles);
+export { GenerateWikiTypoedArticlesSubscription };

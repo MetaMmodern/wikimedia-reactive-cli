@@ -17,7 +17,7 @@ const observable: Observable<MediaWikiRecentChangeEditEvent> = new Observable(
     }
 );
 
-const updateWikiTypoedArticles = (data: MediaWikiRecentChangeEditEvent) => {
+const updateWikiUpdateTypes = (data: MediaWikiRecentChangeEditEvent) => {
     switch (data.type) {
         case "log":
             finalValue.log++;
@@ -37,4 +37,5 @@ const updateWikiTypoedArticles = (data: MediaWikiRecentChangeEditEvent) => {
     return finalValue;
 };
 
-export let wikiTypoedArticlesSubscription = observable.subscribe(updateWikiTypoedArticles);
+const GenerateWikiUpdateTypesSubscription = () => observable.subscribe(updateWikiUpdateTypes);
+export { GenerateWikiUpdateTypesSubscription };
