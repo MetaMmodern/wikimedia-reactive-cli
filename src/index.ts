@@ -1,2 +1,3 @@
 // import "./wikiSubscriber";
-import "./CLI";
+// import "./CLI";
+import "./wikiTypoedArticles"
