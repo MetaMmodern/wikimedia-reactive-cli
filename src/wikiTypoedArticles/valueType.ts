@@ -3,5 +3,8 @@ export interface TypoedArticlesReturnValue {
     totalSize: number
 }
 
-declare type TypoedArticlesStatistics = TypoedArticlesReturnValue;
+class TypoedArticlesStatistics implements TypoedArticlesReturnValue {
+    values = new Array<[string, number]>();
+    totalSize = 0;
+}
 export default TypoedArticlesStatistics;

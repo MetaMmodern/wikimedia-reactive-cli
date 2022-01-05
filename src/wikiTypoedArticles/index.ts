@@ -2,9 +2,10 @@ import WikimediaStream from "wikimedia-streams";
 import { Observable } from "rxjs";
 import { map, tap, filter } from "rxjs/operators";
 import MediaWikiRecentChangeEditEvent from "wikimedia-streams/build/streams/MediaWikiRecentChangeEvent";
+import TypoedArticlesStatistics from "./valueType"
 
 const wikiTypoedArticles: Map<string, number> = new Map();
-
+const finalValue: TypoedArticlesStatistics = new TypoedArticlesStatistics;
 
 const observable: Observable<MediaWikiRecentChangeEditEvent> = new Observable(
     (observer) => {
@@ -21,17 +22,13 @@ const observable: Observable<MediaWikiRecentChangeEditEvent> = new Observable(
 const updateWikiTypoedArticles = (data: MediaWikiRecentChangeEditEvent) => {
     wikiTypoedArticles.set(data.title, wikiTypoedArticles.get(data.title) ?? 0 + 1);
 
-    if (wikiTypoedArticles.size > 0) {
-        process.stdout.clearLine(-1);
-        process.stdout.write('\x1Bc');
-    }
+    finalValue.values = [...wikiTypoedArticles.entries()].sort((a, b) => a[1] - b[1]).slice(0, 10);
+    finalValue.totalSize = wikiTypoedArticles.size;
 
-    let counter: number = 0;
-    for (const [key, value] of [...wikiTypoedArticles.entries()].sort((a, b) => a[1] - b[1]).slice(0, 10))
-        process.stdout.write(`${++counter}) ${key} - ${value}\n`);
+    return finalValue;
 };
 
-const mystream: Observable<MediaWikiRecentChangeEditEvent> = observable
+const wikiTypoedArticlesStream: Observable<MediaWikiRecentChangeEditEvent> = observable
     .pipe(
         // filter((data: MediaWikiRecentChangeEditEvent) =>
         //     data.wiki == 'enwiki'
@@ -39,16 +36,14 @@ const mystream: Observable<MediaWikiRecentChangeEditEvent> = observable
         filter((data: MediaWikiRecentChangeEditEvent) =>
             data.type == "edit" ? data.minor : false
         ),
-        map(
-            _ => _
-        )
+        map(_ => _)
     );
 
-let subscription = mystream.subscribe(updateWikiTypoedArticles);
+export let wikiTypoedArticlesSubscription = wikiTypoedArticlesStream.subscribe(updateWikiTypoedArticles);
 
 setTimeout(() => {
-    subscription.unsubscribe();
+    wikiTypoedArticlesSubscription.unsubscribe();
     setTimeout(() => {
-        subscription = mystream.subscribe(updateWikiTypoedArticles);
+        wikiTypoedArticlesSubscription = wikiTypoedArticlesStream.subscribe(updateWikiTypoedArticles);
     }, 500);
 }, 3000);
