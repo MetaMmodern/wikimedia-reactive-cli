@@ -1,4 +1,3 @@
-import chalk from "chalk";
 import WikimediaStream from "wikimedia-streams";
 import { Observable } from "rxjs";
 import { map, tap, filter } from "rxjs/operators";
@@ -28,23 +27,21 @@ const updateWikiTypoedArticles = (data: MediaWikiRecentChangeEditEvent) => {
     }
 
     let counter: number = 0;
-    for (const [key, value] of [...wikiTypoedArticles.entries()].sort((a, b) => a[1] - b[1])) {
-        if (++counter === 11)
-            break;
-
-        process.stdout.write(`${counter}) ${key} - ${value}\n`);
-    }
+    for (const [key, value] of [...wikiTypoedArticles.entries()].sort((a, b) => a[1] - b[1]).slice(0, 10))
+        process.stdout.write(`${++counter}) ${key} - ${value}\n`);
 };
 
 const mystream: Observable<MediaWikiRecentChangeEditEvent> = observable
     .pipe(
-        filter((data: MediaWikiRecentChangeEditEvent) => data.wiki == 'enwiki'),
-        filter((data: MediaWikiRecentChangeEditEvent) => {
-            if (data.type == "edit")
-                return data.minor;
-            else return false;
-        }),
-        map(_ => _)
+        // filter((data: MediaWikiRecentChangeEditEvent) =>
+        //     data.wiki == 'enwiki'
+        // ),
+        filter((data: MediaWikiRecentChangeEditEvent) =>
+            data.type == "edit" ? data.minor : false
+        ),
+        map(
+            _ => _
+        )
     );
 
 let subscription = mystream.subscribe(updateWikiTypoedArticles);
