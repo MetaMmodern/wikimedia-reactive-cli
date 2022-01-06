@@ -18,7 +18,7 @@ export class MostActiveUserEntry {
     contributions = -1;
 }
 
-export class MostActiveUserStatistics implements MostActiveUserReturnValue {
+export class MostActiveUserStatisticsType implements MostActiveUserReturnValue {
     sec_10 = new Array<MostActiveUserEntryValue>();
     sec_30 = new Array<MostActiveUserEntryValue>();
     min = new Array<MostActiveUserEntryValue>();

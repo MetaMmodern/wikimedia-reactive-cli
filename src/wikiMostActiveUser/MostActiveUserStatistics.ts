@@ -1,5 +1,5 @@
 import MediaWikiRecentChangeEditEvent from "wikimedia-streams/build/streams/MediaWikiRecentChangeEvent";
-import { MostActiveUserStatistics, MostActiveUserEntry } from "./MostActiveUserStatisticsType"
+import { MostActiveUserStatisticsType, MostActiveUserEntry } from "./MostActiveUserStatisticsType"
 import { map } from "rxjs/operators";
 import { observable } from "../wikiSubscriber";
 
@@ -8,7 +8,7 @@ const SEC_10 = 10000;
 const SEC_30 = 30000;
 const MINUTE = 60000;
 
-const finalValue: MostActiveUserStatistics = new MostActiveUserStatistics;
+const finalValue: MostActiveUserStatisticsType = new MostActiveUserStatisticsType;
 const sec10Map = new Map<string, number>();
 const sec30Map = new Map<string, number>();
 const minuteMap = new Map<string, number>();
