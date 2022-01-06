@@ -1,4 +1,4 @@
-import { Observable, Subscription, of, throttleTime } from "rxjs";
+import { Observable, Subscription, of, throttleTime, retry } from "rxjs";
 import MostActiveUserStatistics from "../wikiMostActiveUser/MostActiveUserStatistics";
 import { MostActiveUserStatisticsType } from "../wikiMostActiveUser/MostActiveUserStatisticsType";
 import TypoedArticlesStatistics from "../wikiTypoedArticles/TypoedArticlesStatistics";
@@ -41,19 +41,22 @@ class WikiEventsEmitter {
 
     GetTypoedArticlesStatistics() {
         return of(this.typoedArticlesStatisticsValue).pipe(
-             throttleTime(EMIT_FREQUENCY)
+             throttleTime(EMIT_FREQUENCY),
+             retry()
         );
     }
 
     GetMostActiveUserStatistics() {
         return of(this.mostActiveUserStatisticsValue).pipe(
-            throttleTime(EMIT_FREQUENCY)
+            throttleTime(EMIT_FREQUENCY),
+            retry()
        );
     }
 
     GetUpdateTypesStatistics() {
         return of(this.wikiEventStatisticsValue).pipe(
-            throttleTime(EMIT_FREQUENCY)
+            throttleTime(EMIT_FREQUENCY),
+            retry()
        );
     }
 

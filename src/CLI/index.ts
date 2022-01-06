@@ -1,21 +1,13 @@
-import {
-  MostActiveUserEntry,
-  MostActiveUserEntryValue,
-} from "./../wikiMostActiveUser/MostActiveUserStatisticsType";
 import chalk from "chalk";
 import { drawChart } from "./../types/chats/index";
 import { map, scan, throttle } from "rxjs/operators";
-import UpdateTypesStatistics from "../wikiUpdateTypes/UpdateTypesStatistics";
-import MostActiveUserStatistics from "../wikiMostActiveUser/MostActiveUserStatistics";
-import { MostActiveUserStatisticsType } from "../wikiMostActiveUser/MostActiveUserStatisticsType";
 import { interval, Observable, Subscription } from "rxjs";
-import "../wikiSubscriber";
 import Table from "cli-table";
-import TypoedArticlesStatistics from "../wikiTypoedArticles/TypoedArticlesStatistics";
+import wikiEventsEmitter from "../wikiEventsEmitter";
 
 // 4 messages edit new log categorize (text/mode)
 const UpdateStatisticsObservable = () => {
-  return UpdateTypesStatistics.pipe(
+  return wikiEventsEmitter.GetUpdateTypesStatistics().pipe(
     scan(
       (acc, cur) => {
         return {
@@ -38,7 +30,7 @@ const UpdateStatisticsObservable = () => {
 };
 
 const UpdateStatisticsTextObservable = () => {
-  return UpdateTypesStatistics.pipe(
+  return wikiEventsEmitter.GetUpdateTypesStatistics().pipe(
     scan(
       (acc, cur) => {
         return {
@@ -75,8 +67,9 @@ const UpdateStatisticsTextObservable = () => {
     // concatMap((item) => of(item).pipe(delay(100)))
   );
 };
+
 const UpdateStatisticsGraphObservable = () => {
-  return UpdateTypesStatistics.pipe(
+  return wikiEventsEmitter.GetUpdateTypesStatistics().pipe(
     scan(
       (acc, cur) => {
         return {
@@ -120,7 +113,7 @@ const UpdateStatisticsGraphObservable = () => {
 
 // (list: time, user, contributions)
 const MostActiveUsersObservable = (inteval: "min" | "sec_10" | "sec_30") => {
-  return MostActiveUserStatistics.pipe(
+  return wikiEventsEmitter.GetMostActiveUserStatistics().pipe(
     throttle(() => interval(10000)),
     map((v) => v[inteval]),
     map((v) => {
@@ -139,7 +132,7 @@ const MostActiveUsersObservable = (inteval: "min" | "sec_10" | "sec_30") => {
 };
 
 const MostTypoedArticlesObservable = () => {
-  return TypoedArticlesStatistics.pipe(
+  return wikiEventsEmitter.GetTypoedArticlesStatistics().pipe(
     map((el) => {
       const totalString = `Total processed: ${chalk.cyanBright(
         el.totalSize
