@@ -62,7 +62,7 @@ class CLIConsumer {
       // console.log(data.edit);
       process.stdout.write("\n");
       var data1 = data.edit.map((v) => v + 10)
-      process.stdout.write(drawChart([data.edit, data1], { height: 40}));
+      process.stdout.write(drawChart([data.edit, data1], { height: 40, colorsNames:["yellow"]}));
     });
   }
   rootStdInListener(data: Buffer) {

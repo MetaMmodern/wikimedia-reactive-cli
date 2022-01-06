@@ -68,13 +68,22 @@ export const drawChart = (data: Array<number[]>, customConfig?: any) => {
       height: 30
     };
   }
+
   if (!tempConfigs.colors)
   {
     tempConfigs.colors = []
   }
+
   for (var i = 0; i < data.length; i++) 
   {
-    tempConfigs.colors.push(a[i])
+    
+    if (tempConfigs.colorsNames && tempConfigs.colorsNames[i])
+    {
+      tempConfigs.colors.push(dictionaryColorsPool.get(tempConfigs.colorsNames[i]))
+    }
+    else{
+      tempConfigs.colors.push(a[i])
+    }
 
     if (data[i].length > process.stdout.columns - 15) {
         data[i] = data[i].slice(data[i].length - process.stdout.columns + 15)
