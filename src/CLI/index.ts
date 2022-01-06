@@ -1,4 +1,6 @@
-import "../wikiSubscriber"
+import "../wikiSubscriber";
+import UpdateTypesStatistics from "../wikiUpdateTypes/UpdateTypesStatistics";
+import { concatMap, delay, of } from "rxjs";
 
 class CLIConsumer {
   readonly baseActions = {
@@ -31,6 +33,12 @@ class CLIConsumer {
   constructor() {
     this.logWithUserPrompt("");
     process.stdin.addListener("data", this.rootStdInListener.bind(this));
+    UpdateTypesStatistics.pipe(
+      concatMap((item) => of(item).pipe(delay(1000)))
+    ).subscribe((data) => {
+      process.stdout.write("\r\x1b[K");
+      process.stdout.write(JSON.stringify(data));
+    });
   }
   rootStdInListener(data: Buffer) {
     switch (this.currentOperation) {
@@ -73,7 +81,7 @@ class CLIConsumer {
   promptUsersList() {
     console.clear();
     this.currentOperation = "user_selection";
-    process.stdout.write("Enter coma seperated users filter list: ");
+    process.stdout.write("Enter coma separated users filter list: ");
   }
 
   actionsListener(data: Buffer) {
