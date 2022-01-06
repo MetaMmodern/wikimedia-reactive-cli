@@ -1,8 +1,8 @@
 import { drawChart } from "./../types/chats/index";
-import { map, scan } from "rxjs/operators";
+import { map, scan, throttle } from "rxjs/operators";
 import "../wikiSubscriber";
 import UpdateTypesStatistics from "../wikiUpdateTypes/UpdateTypesStatistics";
-import { concatMap, delay, of, Subscription } from "rxjs";
+import { concatMap, delay, interval, Observable, of, Subscription } from "rxjs";
 import * as asciichart from "asciichart";
 
 class CLIConsumer {
@@ -32,13 +32,21 @@ class CLIConsumer {
   usersList: string[] = [];
   showsStats: boolean = false;
   statsType: string = "";
+  currentObservable:
+    | Observable<{
+        new: number[];
+        log: number[];
+        edit: number[];
+        categorize: number[];
+      }>
+    | undefined = undefined;
   currentSubscription: Subscription | undefined = undefined;
   constructor() {
     this.logWithUserPrompt("");
     process.stdin.setRawMode(true);
     process.stdin.addListener("data", this.rootStdInListener.bind(this));
 
-    this.currentSubscription = UpdateTypesStatistics.pipe(
+    this.currentObservable = UpdateTypesStatistics.pipe(
       scan(
         (acc, cur) => {
           return {
@@ -55,13 +63,27 @@ class CLIConsumer {
           categorize: number[];
         }
       ),
-      concatMap((item) => of(item).pipe(delay(100)))
-    ).subscribe((data) => {
-      process.stdout.moveCursor(0, -32);
-      process.stdout.write("\n");
-      var data1 = data.edit.map((v) => v + 10);
-      process.stdout.write(drawChart([data.edit, data1], { height: 40 }));
-    });
+      throttle(() => interval(500))
+      // concatMap((item) => of(item).pipe(delay(100)))
+    );
+    this.currentSubscription = this.currentObservable.subscribe(
+      this.defaultSubscriber
+    );
+  }
+  defaultSubscriber(data: {
+    new: number[];
+    log: number[];
+    edit: number[];
+    categorize: number[];
+  }) {
+    console.clear();
+    process.stdout.write("\n");
+
+    this.logWithUserPrompt(
+      drawChart([data.edit, data.log, data.categorize, data.new], {
+        height: process.stdout.rows - 2,
+      })
+    );
   }
   rootStdInListener(data: Buffer) {
     switch (this.currentOperation) {
@@ -109,7 +131,7 @@ class CLIConsumer {
   }
 
   actionsListener(data: Buffer) {
-    this.currentSubscription?.unsubscribe();
+    // this.currentSubscription?.unsubscribe();
     const userInput = data.toString()[0];
     switch (userInput) {
       case "u":
