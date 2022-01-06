@@ -1,6 +1,9 @@
+import { drawChart } from "./../types/chats/index";
+import { map, scan } from "rxjs/operators";
 import "../wikiSubscriber";
 import UpdateTypesStatistics from "../wikiUpdateTypes/UpdateTypesStatistics";
 import { concatMap, delay, of } from "rxjs";
+import * as asciichart from "asciichart";
 
 class CLIConsumer {
   readonly baseActions = {
@@ -33,11 +36,32 @@ class CLIConsumer {
   constructor() {
     this.logWithUserPrompt("");
     process.stdin.addListener("data", this.rootStdInListener.bind(this));
+
     UpdateTypesStatistics.pipe(
-      concatMap((item) => of(item).pipe(delay(1000)))
+      scan(
+        (acc, cur) => {
+          return {
+            new: [...acc.new, cur.new],
+            edit: [...acc.edit, cur.edit],
+            log: [...acc.log, cur.log],
+            categorize: [...acc.categorize, cur.categorize],
+          };
+        },
+        { new: [], log: [], edit: [], categorize: [] } as {
+          new: number[];
+          log: number[];
+          edit: number[];
+          categorize: number[];
+        }
+      ),
+      concatMap((item) => of(item).pipe(delay(100)))
     ).subscribe((data) => {
-      process.stdout.write("\r\x1b[K");
-      process.stdout.write(JSON.stringify(data));
+      // process.stdout.write("\r\x1b[K");
+      process.stdout.moveCursor(0, -31);
+      // process.stdout.clearScreenDown();
+      // console.log(data.edit);
+      process.stdout.write("\n");
+      process.stdout.write(drawChart([data.edit], "blue"));
     });
   }
   rootStdInListener(data: Buffer) {

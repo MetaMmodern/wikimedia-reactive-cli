@@ -39,10 +39,29 @@ const dictionaryColorsPool = new Map<string, any>(
   })
 );
 
-export const drawChart = (data: number[], color?: string) => {
+const a = [
+  black,
+  red,
+  green,
+  yellow,
+  blue,
+  magenta,
+  cyan,
+  lightgray,
+  darkgray,
+  lightred,
+  lightgreen,
+  lightyellow,
+  lightblue,
+  lightmagenta,
+  lightcyan,
+  white,
+];
+
+export const drawChart = (data: Array<number[]>, color?: string) => {
   var config = {
     colors: [red],
-    height: 50,
+    height: 30,
   };
 
   if (color) {
@@ -50,8 +69,11 @@ export const drawChart = (data: number[], color?: string) => {
     config.colors.push(dictionaryColorsPool.get(color));
   }
 
-  if (data.length > 120) {
-    data = data.slice(data.length - 120, data.length);
+  if (data[0].length > process.stdout.columns - 30) {
+    return plot(
+      data[0].slice(data[0].length - process.stdout.columns - 30),
+      config
+    );
   }
 
   return plot(data, config);
