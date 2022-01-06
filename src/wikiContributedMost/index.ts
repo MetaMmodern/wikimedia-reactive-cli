@@ -5,26 +5,31 @@ import TypoContributedTopic from "./TypoContributedTopic";
 import { observable } from "../wikiSubscriber";
 
 const wikiTypoedArticles: Map<string, number> = new Map();
-const finalValue: TypoContributedTopic = new TypoContributedTopic;
+const finalValue: TypoContributedTopic = new TypoContributedTopic();
 let currentUser: string;
 
-const updateWikiTypoContributedTopic = (data: MediaWikiRecentChangeEditEvent) => {
-    wikiTypoedArticles.set(data.title, wikiTypoedArticles.get(data.title) ?? 0 + 1);
+const updateWikiTypoContributedTopic = (
+  data: MediaWikiRecentChangeEditEvent
+) => {
+  wikiTypoedArticles.set(
+    data.title,
+    wikiTypoedArticles.get(data.title) ?? 0 + 1
+  );
 
-    finalValue.values = [...wikiTypoedArticles.entries()].sort((a, b) => b[1] - a[1]);
+  finalValue.values = [...wikiTypoedArticles.entries()].sort(
+    (a, b) => b[1] - a[1]
+  );
 
-    return finalValue.values.slice(0, 10);
+  return finalValue.values.slice(0, 10);
 };
 
-export const wikiTypoedArticlesStream: Observable<MediaWikiRecentChangeEditEvent> = observable
-    .pipe(
-        filter((data: MediaWikiRecentChangeEditEvent) =>
-            data.user == currentUser
-        )
-    );
+export const wikiTypoedArticlesStream: Observable<MediaWikiRecentChangeEditEvent> =
+  observable.pipe(
+    filter((data: MediaWikiRecentChangeEditEvent) => data.user == currentUser)
+  );
 
-const GenerateWikiTypoedContributedTopic = (user : string) => {
-    currentUser = user
-    wikiTypoedArticlesStream.subscribe(updateWikiTypoContributedTopic)
+const GenerateWikiTypoedContributedTopic = (user: string) => {
+  currentUser = user;
+  wikiTypoedArticlesStream.subscribe(updateWikiTypoContributedTopic);
 };
 export { GenerateWikiTypoedContributedTopic };
