@@ -1,25 +1,11 @@
-import WikimediaStream from "wikimedia-streams";
-import { Observable } from "rxjs";
-import { filter } from "rxjs/operators";
 import MediaWikiRecentChangeEditEvent from "wikimedia-streams/build/streams/MediaWikiRecentChangeEvent";
+import { observable } from "../wikiSubscriber";
 
 let amountOfContributions: number = 0;
 
 let currentUser: string;
 let latestSecDate = Date.now();
 let seconds: number = 10000;
-
-const observable: Observable<MediaWikiRecentChangeEditEvent> = new Observable(
-    (observer) => {
-        const stream = new WikimediaStream("recentchange");
-        stream.on("recentchange", (data) => observer.next(data));
-
-        return () => {
-            console.log("Everyone unsubscribed.");
-            stream.close();
-        };
-    }
-);
 
 const updateWikiContributsAmountPerTime = (data: MediaWikiRecentChangeEditEvent) => {
     const date = Date.now();

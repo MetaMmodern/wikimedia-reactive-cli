@@ -1,21 +1,8 @@
-import WikimediaStream from "wikimedia-streams";
-import { Observable } from "rxjs";
 import MediaWikiRecentChangeEditEvent from "wikimedia-streams/build/streams/MediaWikiRecentChangeEvent";
 import UpdateTypesStatistics from "./UpdateTypesStatisticsType"
+import { observable } from "../wikiSubscriber";
 
 const finalValue: UpdateTypesStatistics = new UpdateTypesStatistics;
-
-const observable: Observable<MediaWikiRecentChangeEditEvent> = new Observable(
-    (observer) => {
-        const stream = new WikimediaStream("recentchange");
-        stream.on("recentchange", (data) => observer.next(data));
-
-        return () => {
-            console.log("Everyone unsubscribed.");
-            stream.close();
-        };
-    }
-);
 
 const updateWikiUpdateTypes = (data: MediaWikiRecentChangeEditEvent) => {
     switch (data.type) {

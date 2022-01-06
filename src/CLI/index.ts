@@ -1,3 +1,5 @@
+import "../wikiSubscriber"
+
 class CLIConsumer {
   readonly baseActions = {
     "[u]": "users",

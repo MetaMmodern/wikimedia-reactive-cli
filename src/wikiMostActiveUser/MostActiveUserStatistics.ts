@@ -1,7 +1,6 @@
-import WikimediaStream from "wikimedia-streams";
-import { Observable } from "rxjs";
 import MediaWikiRecentChangeEditEvent from "wikimedia-streams/build/streams/MediaWikiRecentChangeEvent";
 import { MostActiveUserStatistics, MostActiveUserEntry } from "./MostActiveUserStatisticsType"
+import { observable } from "../wikiSubscriber";
 
 declare type TimeIntervalType = 10000 | 30000 | 60000;
 const SEC_10 = 10000;
@@ -16,18 +15,6 @@ const minuteMap = new Map<string, number>();
 let latestSec10Date = new Date();
 let latestSec30Date = new Date();
 let latestMinuteDate = new Date();
-
-const observable: Observable<MediaWikiRecentChangeEditEvent> = new Observable(
-    (observer) => {
-        const stream = new WikimediaStream("recentchange");
-        stream.on("recentchange", (data) => observer.next(data));
-
-        return () => {
-            console.log("Everyone unsubscribed.");
-            stream.close();
-        };
-    }
-);
 
 const UpdateUsersEdits = (user: string) => {
     const updateUserEditsMap = (user: string, map: Map<string, number>) => {

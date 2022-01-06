@@ -1,6 +1,5 @@
-//import "./wikiSubscriber";
-//import "./CLI";
-import "./types/chats/index";
+import "./CLI";
+// import "./types/chats/index";
 
 // import "./wikiSubscriber";
 // import "./CLI";
