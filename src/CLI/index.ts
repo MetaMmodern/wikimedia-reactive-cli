@@ -2,7 +2,7 @@ import { drawChart } from "./../types/chats/index";
 import { map, scan } from "rxjs/operators";
 import "../wikiSubscriber";
 import UpdateTypesStatistics from "../wikiUpdateTypes/UpdateTypesStatistics";
-import { concatMap, delay, of } from "rxjs";
+import { concatMap, delay, of, Subscription } from "rxjs";
 import * as asciichart from "asciichart";
 
 class CLIConsumer {
@@ -32,12 +32,13 @@ class CLIConsumer {
   usersList: string[] = [];
   showsStats: boolean = false;
   statsType: string = "";
-
+  currentSubscription: Subscription | undefined = undefined;
   constructor() {
     this.logWithUserPrompt("");
+    process.stdin.setRawMode(true);
     process.stdin.addListener("data", this.rootStdInListener.bind(this));
 
-    UpdateTypesStatistics.pipe(
+    this.currentSubscription = UpdateTypesStatistics.pipe(
       scan(
         (acc, cur) => {
           return {
@@ -56,10 +57,7 @@ class CLIConsumer {
       ),
       concatMap((item) => of(item).pipe(delay(100)))
     ).subscribe((data) => {
-      // process.stdout.write("\r\x1b[K");
-      process.stdout.moveCursor(0, -31);
-      // process.stdout.clearScreenDown();
-      // console.log(data.edit);
+      process.stdout.moveCursor(0, -32);
       process.stdout.write("\n");
       var data1 = data.edit.map((v) => v + 10)
       process.stdout.write(drawChart([data.edit, data1], { height: 40, colorsNames:["yellow"]}));
@@ -95,7 +93,7 @@ class CLIConsumer {
   }
   logWithUserPrompt(output: string) {
     console.clear();
-    process.stdout.write(output);
+    process.stdout.write(output + "\n");
     process.stdout.write(
       Object.entries(this.baseActions)
         .map((entry) => entry[0] + entry[1].slice(1))
@@ -104,12 +102,14 @@ class CLIConsumer {
   }
 
   promptUsersList() {
+    process.stdin.setRawMode(false);
     console.clear();
     this.currentOperation = "user_selection";
     process.stdout.write("Enter coma separated users filter list: ");
   }
 
   actionsListener(data: Buffer) {
+    this.currentSubscription?.unsubscribe();
     const userInput = data.toString()[0];
     switch (userInput) {
       case "u":
@@ -141,6 +141,7 @@ class CLIConsumer {
   }
 
   usersSelected(data: Buffer) {
+    process.stdin.setRawMode(true);
     this.currentOperation = "";
     this.usersList = data
       .toString()
