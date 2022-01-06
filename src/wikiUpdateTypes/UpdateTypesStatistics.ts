@@ -31,6 +31,3 @@ const updateWikiUpdateTypes = (data: MediaWikiRecentChangeEditEvent) => {
 };
 
 export default observable.pipe(map(updateWikiUpdateTypes));
-// const GenerateWikiUpdateTypesSubscription = () =>
-//   observable.subscribe(updateWikiUpdateTypes);
-// export { GenerateWikiUpdateTypesSubscription };

@@ -1,5 +1,4 @@
-import { Observable } from "rxjs";
-import { filter } from "rxjs/operators";
+import { filter, map } from "rxjs/operators";
 import MediaWikiRecentChangeEditEvent from "wikimedia-streams/build/streams/MediaWikiRecentChangeEvent";
 import TypoedArticlesStatistics from "./TypoedArticlesStatisticsType";
 import { observable } from "../wikiSubscriber";
@@ -21,13 +20,9 @@ const updateWikiTypoedArticles = (data: MediaWikiRecentChangeEditEvent) => {
   return finalValue;
 };
 
-export const wikiTypoedArticlesStream: Observable<MediaWikiRecentChangeEditEvent> =
-  observable.pipe(
-    filter((data: MediaWikiRecentChangeEditEvent) =>
-      data.type == "edit" ? data.minor : false
-    )
-  );
-
-const GenerateWikiTypoedArticlesSubscription = () =>
-  wikiTypoedArticlesStream.subscribe(updateWikiTypoedArticles);
-export { GenerateWikiTypoedArticlesSubscription };
+export default observable.pipe(
+  filter((data: MediaWikiRecentChangeEditEvent) =>
+    data.type == "edit" ? data.minor : false
+  ),
+  map(updateWikiTypoedArticles)
+);

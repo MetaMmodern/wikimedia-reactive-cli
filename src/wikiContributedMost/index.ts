@@ -1,5 +1,4 @@
-import { Observable } from "rxjs";
-import { filter } from "rxjs/operators";
+import { filter, map } from "rxjs/operators";
 import MediaWikiRecentChangeEditEvent from "wikimedia-streams/build/streams/MediaWikiRecentChangeEvent";
 import TypoContributedTopic from "./TypoContributedTopic";
 import { observable } from "../wikiSubscriber";
@@ -23,13 +22,12 @@ const updateWikiTypoContributedTopic = (
   return finalValue.values.slice(0, 10);
 };
 
-export const wikiTypoedArticlesStream: Observable<MediaWikiRecentChangeEditEvent> =
-  observable.pipe(
-    filter((data: MediaWikiRecentChangeEditEvent) => data.user == currentUser)
-  );
-
 const GenerateWikiTypoedContributedTopic = (user: string) => {
   currentUser = user;
-  wikiTypoedArticlesStream.subscribe(updateWikiTypoContributedTopic);
+
+  return observable.pipe(
+    filter((data: MediaWikiRecentChangeEditEvent) => data.user == currentUser),
+    map(updateWikiTypoContributedTopic)
+  );
 };
-export { GenerateWikiTypoedContributedTopic };
+export default GenerateWikiTypoedContributedTopic;
