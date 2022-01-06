@@ -1,10 +1,10 @@
 import { filter, map } from "rxjs/operators";
 import MediaWikiRecentChangeEditEvent from "wikimedia-streams/build/streams/MediaWikiRecentChangeEvent";
-import TypoedArticlesStatistics from "./TypoedArticlesStatisticsType";
+import TypoedArticlesStatisticsType from "./TypoedArticlesStatisticsType";
 import { observable } from "../wikiSubscriber";
 
 const wikiTypoedArticles: Map<string, number> = new Map();
-const finalValue: TypoedArticlesStatistics = new TypoedArticlesStatistics();
+const finalValue: TypoedArticlesStatisticsType = new TypoedArticlesStatisticsType();
 
 const updateWikiTypoedArticles = (data: MediaWikiRecentChangeEditEvent) => {
   wikiTypoedArticles.set(

@@ -1,13 +1,13 @@
 import { filter, map } from "rxjs/operators";
 import MediaWikiRecentChangeEditEvent from "wikimedia-streams/build/streams/MediaWikiRecentChangeEvent";
-import TypoContributedTopic from "./TypoContributedTopic";
+import UserStatisticsType from "./UserStatisticsType";
 import { observable } from "../wikiSubscriber";
 
 const wikiTypoedArticles: Map<string, number> = new Map();
-const finalValue: TypoContributedTopic = new TypoContributedTopic();
+const finalValue: UserStatisticsType = new UserStatisticsType();
 let currentUser: string;
 
-const updateWikiTypoContributedTopic = (
+const updateUserStatistics = (
   data: MediaWikiRecentChangeEditEvent
 ) => {
   wikiTypoedArticles.set(
@@ -15,19 +15,21 @@ const updateWikiTypoContributedTopic = (
     wikiTypoedArticles.get(data.title) ?? 0 + 1
   );
 
-  finalValue.values = [...wikiTypoedArticles.entries()].sort(
-    (a, b) => b[1] - a[1]
-  );
+  finalValue.topArticleContributions = [...wikiTypoedArticles.entries()].sort((a, b) => b[1] - a[1]).slice(0, 10);
 
-  return finalValue.values.slice(0, 10);
+  if ((data.type == "edit" ? data.minor : false) || data.type == "categorize")
+    finalValue.typosEditing++;
+  else if (data.type == "edit" ? !data.minor : data.type == "new")
+    finalValue.contentAddition++;
+
+  return finalValue;
 };
 
-const GenerateWikiTypoedContributedTopic = (user: string) => {
+export default (user: string) => {
   currentUser = user;
 
   return observable.pipe(
     filter((data: MediaWikiRecentChangeEditEvent) => data.user == currentUser),
-    map(updateWikiTypoContributedTopic)
+    map(updateUserStatistics)
   );
 };
-export default GenerateWikiTypoedContributedTopic;

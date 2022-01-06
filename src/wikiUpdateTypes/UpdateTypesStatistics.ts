@@ -1,14 +1,9 @@
 import MediaWikiRecentChangeEditEvent from "wikimedia-streams/build/streams/MediaWikiRecentChangeEvent";
-import { UpdateTypesReturnValue } from "./UpdateTypesStatisticsType";
+import { wikiEventStatisticsType } from "./UpdateTypesStatisticsType";
 import { observable } from "../wikiSubscriber";
 import { map } from "rxjs/operators";
 
-const finalValue: UpdateTypesReturnValue = {
-  log: 0,
-  new: 0,
-  edit: 0,
-  categorize: 0,
-};
+const finalValue: wikiEventStatisticsType = new wikiEventStatisticsType();
 
 const updateWikiUpdateTypes = (data: MediaWikiRecentChangeEditEvent) => {
   switch (data.type) {

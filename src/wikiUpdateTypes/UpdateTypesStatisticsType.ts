@@ -1,6 +1,6 @@
-export interface UpdateTypesReturnValue {
-  log: number;
-  new: number;
-  edit: number;
-  categorize: number;
+export class wikiEventStatisticsType {
+  log = 0;
+  new = 0;
+  edit = 0;
+  categorize = 0;
 }
