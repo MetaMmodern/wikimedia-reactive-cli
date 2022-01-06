@@ -23,15 +23,11 @@ const observable: Observable<MediaWikiRecentChangeEditEvent> = new Observable(
 const updateWikiUserContributionsType = (data: MediaWikiRecentChangeEditEvent) => {
 
     if ((data.type == "edit" ? data.minor : false) || data.type == "categorize")
-    {
         typosEditing++;
-    }
-    else (data.type == "new" || data.type == "edit" ? !data.minor : false)
-    {
+    else if (data.type == "edit" ? !data.minor : data.type == "new")
         contentAddition++;
-    }
-    console.log({typosEditing, contentAddition})
-    return {typosEditing, contentAddition};
+
+    return { typosEditing, contentAddition };
 };
 
 export const wikiTypoedArticlesStream: Observable<MediaWikiRecentChangeEditEvent> = observable
@@ -41,12 +37,10 @@ export const wikiTypoedArticlesStream: Observable<MediaWikiRecentChangeEditEvent
         )
     );
 
-const GenerateWikiUserContributionsType = (user : string) => {
+const GenerateWikiUserContributionsType = (user: string) => {
     currentUser = user
     typosEditing = 0
     contentAddition = 0
     wikiTypoedArticlesStream.subscribe(updateWikiUserContributionsType)
 };
 export { GenerateWikiUserContributionsType };
-
-GenerateWikiUserContributionsType("InternetArchiveBot")

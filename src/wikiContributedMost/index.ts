@@ -40,5 +40,3 @@ const GenerateWikiTypoedContributedTopic = (user : string) => {
     wikiTypoedArticlesStream.subscribe(updateWikiTypoContributedTopic)
 };
 export { GenerateWikiTypoedContributedTopic };
-
-GenerateWikiTypoedContributedTopic("InternetArchiveBot")

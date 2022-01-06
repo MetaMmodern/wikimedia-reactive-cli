@@ -38,19 +38,10 @@ const updateWikiContributsAmountPerTime = (data: MediaWikiRecentChangeEditEvent)
     return {amountOfContributions};
 };
 
-export const wikiTypoedArticlesStream: Observable<MediaWikiRecentChangeEditEvent> = observable
-    .pipe(
-        // filter((data: MediaWikiRecentChangeEditEvent) =>
-        //     data.user == currentUser
-        // )
-    );
-
 const GenerateWikiUserContributsAmountPerTime = (user : string, timeDelay: number) => {
     currentUser = user
     amountOfContributions = 0
     seconds = timeDelay
-    wikiTypoedArticlesStream.subscribe(updateWikiContributsAmountPerTime)
+    observable.subscribe(updateWikiContributsAmountPerTime)
 };
 export { GenerateWikiUserContributsAmountPerTime };
-
-GenerateWikiUserContributsAmountPerTime("InternetArchiveBot", 1000)
