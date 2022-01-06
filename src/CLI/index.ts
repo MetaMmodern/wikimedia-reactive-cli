@@ -1,3 +1,7 @@
+import {
+  MostActiveUserEntry,
+  MostActiveUserEntryValue,
+} from "./../wikiMostActiveUser/MostActiveUserStatisticsType";
 import chalk from "chalk";
 import { drawChart } from "./../types/chats/index";
 import { map, scan, throttle } from "rxjs/operators";
@@ -6,6 +10,8 @@ import MostActiveUserStatistics from "../wikiMostActiveUser/MostActiveUserStatis
 import { MostActiveUserStatisticsType } from "../wikiMostActiveUser/MostActiveUserStatisticsType";
 import { interval, Observable, Subscription } from "rxjs";
 import "../wikiSubscriber";
+import Table from "cli-table";
+import TypoedArticlesStatistics from "../wikiTypoedArticles/TypoedArticlesStatistics";
 
 // 4 messages edit new log categorize (text/mode)
 const UpdateStatisticsObservable = () => {
@@ -31,50 +37,122 @@ const UpdateStatisticsObservable = () => {
   );
 };
 
-const UpdateStatisticsGraphicSubscriber = (logFunction: Function) => {
-  return (data: {
-    new: number[];
-    log: number[];
-    edit: number[];
-    categorize: number[];
-  }) => {
-    console.clear();
-    process.stdout.write("\n");
+const UpdateStatisticsTextObservable = () => {
+  return UpdateTypesStatistics.pipe(
+    scan(
+      (acc, cur) => {
+        return {
+          new: [...acc.new, cur.new],
+          edit: [...acc.edit, cur.edit],
+          log: [...acc.log, cur.log],
+          categorize: [...acc.categorize, cur.categorize],
+        };
+      },
+      { new: [], log: [], edit: [], categorize: [] } as {
+        new: number[];
+        log: number[];
+        edit: number[];
+        categorize: number[];
+      }
+    ),
+    throttle(() => interval(500)),
+    map(
+      (v) =>
+        Object.fromEntries(
+          Object.entries(v).map((e) => [
+            e[0],
+            e[1].reduce((acc, curr) => acc + curr, 0),
+          ])
+        ) as {
+          new: number;
+          log: number;
+          edit: number;
+          categorize: number;
+        }
+    ),
+    map((data) => chalk.bgGreen(JSON.stringify(data, null, 2)))
 
-    logFunction(
-      drawChart([data.edit, data.log, data.categorize, data.new], {
-        height: process.stdout.rows - 2,
-        colorsNames: ["yellow", "magenta", "blue", "red"],
-      })
-    );
-  };
+    // concatMap((item) => of(item).pipe(delay(100)))
+  );
 };
-const UpdateStatisticsTextSubscriber = (logFunction: Function) => {
-  return (data: {
-    new: number;
-    log: number;
-    edit: number;
-    categorize: number;
-  }) => {
-    console.clear();
-    process.stdout.write("\n");
+const UpdateStatisticsGraphObservable = () => {
+  return UpdateTypesStatistics.pipe(
+    scan(
+      (acc, cur) => {
+        return {
+          new: [...acc.new, cur.new],
+          edit: [...acc.edit, cur.edit],
+          log: [...acc.log, cur.log],
+          categorize: [...acc.categorize, cur.categorize],
+        };
+      },
+      { new: [], log: [], edit: [], categorize: [] } as {
+        new: number[];
+        log: number[];
+        edit: number[];
+        categorize: number[];
+      }
+    ),
+    throttle(() => interval(500)),
+    map((data) => {
+      const chart = drawChart(
+        [data.edit, data.log, data.categorize, data.new],
+        {
+          height: process.stdout.rows - 3,
+          colorsNames: ["yellow", "magenta", "blue", "red"],
+        }
+      );
+      const square = "■";
 
-    logFunction(chalk.bgGreen(JSON.stringify(data, null, 2)));
-  };
+      let legend = [
+        chalk.red(square + "New"),
+        chalk.yellow(square + "Edit"),
+        chalk.magenta(square + "Log"),
+        chalk.blue(square + "Categorize"),
+      ].join("  ");
+      const pad = " ".repeat(process.stdout.columns / 2 - legend.length / 2);
+      legend = pad + legend;
+      return chart + "\n" + legend;
+    })
+    // concatMap((item) => of(item).pipe(delay(100)))
+  );
 };
 
 // (list: time, user, contributions)
-const GetMostActiveUserSubscription = () => {
-  return MostActiveUserStatistics.pipe(throttle(() => interval(10000)));
+const MostActiveUsersObservable = (inteval: "min" | "sec_10" | "sec_30") => {
+  return MostActiveUserStatistics.pipe(
+    throttle(() => interval(10000)),
+    map((v) => v[inteval]),
+    map((v) => {
+      const table = new Table({
+        head: ["Place", "Username", "Contributions", "Timing"],
+      });
+      v.map((el, i) => {
+        const timing =
+          `${el.fromDate.getHours()}:${el.fromDate.getMinutes()}:${el.fromDate.getSeconds()}` +
+          `-${el.toDate.getHours()}:${el.toDate.getMinutes()}:${el.toDate.getSeconds()}`;
+        return table.push([i + 1, el.userName, el.contributions, timing]);
+      });
+      return table.toString();
+    })
+  );
 };
 
-const GetMostActiveUserSubscriber = (logFunction: Function) => {
-  return (data: MostActiveUserStatisticsType) => {
-    console.clear();
-    process.stdout.write("\n");
-
-    logFunction();
-  };
+const MostTypoedArticlesObservable = () => {
+  return TypoedArticlesStatistics.pipe(
+    map((el) => {
+      const totalString = `Total processed: ${chalk.cyanBright(
+        el.totalSize
+      )} articles.\n`;
+      const topArticles = new Table({
+        head: ["Name", "???Nik"],
+      });
+      el.values.forEach((article) =>
+        topArticles.push([article[0], article[1]])
+      );
+      return totalString + topArticles.toString();
+    })
+  );
 };
 
 class CLIConsumer {
@@ -82,7 +160,7 @@ class CLIConsumer {
     "[u]": "users",
     "[i]": "interval",
     "[m]": "mode",
-    "[s]": "stats",
+    "[s]": "state",
     "[q]": "quit",
   };
   readonly modeSelectionActions = {
@@ -95,9 +173,9 @@ class CLIConsumer {
     "[3]": "1 minute",
   };
   readonly stateSelectionActions = {
-    "[1]": "10 seconds",
-    "[2]": "30 seconds",
-    "[3]": "1 minute",
+    "[1]": "Show Edit Statistics",
+    "[2]": "Top active users",
+    "[3]": "Most typoed articles",
   };
   currentOperation:
     | "user_selection"
@@ -105,7 +183,7 @@ class CLIConsumer {
     | "mode_selection"
     | "stats_selection"
     | "" = "";
-  currentInterval: "1m" | "30s" | "10s" = "10s";
+  currentInterval: "min" | "sec_30" | "sec_10" = "sec_10";
   currentMode: "text" | "graph" = "graph";
   currentState:
     | "most_active_users"
@@ -114,23 +192,16 @@ class CLIConsumer {
   usersList: string[] = [];
   showsStats: boolean = false;
   statsType: string = "";
-  currentObservable:
-    | Observable<{
-        new: number[];
-        log: number[];
-        edit: number[];
-        categorize: number[];
-      }>
-    | Observable<MostActiveUserStatisticsType>;
+  currentObservable: Observable<string>;
   currentSubscription: Subscription;
   constructor() {
     this.logWithUserPrompt("");
     process.stdin.setRawMode(true);
     process.stdin.addListener("data", this.rootStdInListener.bind(this));
 
-    this.currentObservable = UpdateStatisticsObservable();
+    this.currentObservable = UpdateStatisticsGraphObservable();
     this.currentSubscription = this.currentObservable.subscribe(
-      this.currentSubscriber.bind(this)
+      this.logWithUserPrompt.bind(this)
     );
   }
 
@@ -142,48 +213,26 @@ class CLIConsumer {
     switch (this.currentState) {
       case "edit_types_statistics":
         if (this.currentMode === "graph") {
-          this.currentObservable = UpdateStatisticsObservable();
-          this.currentSubscription = this.currentObservable?.subscribe(
-            UpdateStatisticsGraphicSubscriber(
-              this.logWithUserPrompt.bind(this)
-            ).bind(this)
-          );
+          this.currentObservable = UpdateStatisticsGraphObservable();
         } else {
-          this.currentObservable = UpdateStatisticsObservable();
-          this.currentSubscription = this.currentObservable
-            .pipe(
-              map(
-                (v) =>
-                  Object.fromEntries(
-                    Object.entries(v).map((e) => [
-                      e[0],
-                      e[1].reduce((acc, curr) => acc + curr, 0),
-                    ])
-                  ) as {
-                    new: number;
-                    log: number;
-                    edit: number;
-                    categorize: number;
-                  }
-              )
-            )
-            .subscribe(
-              UpdateStatisticsTextSubscriber(this.logWithUserPrompt.bind(this))
-            );
+          this.currentObservable = UpdateStatisticsTextObservable();
         }
         break;
       case "most_active_users":
+        this.currentObservable = MostActiveUsersObservable(
+          this.currentInterval
+        );
         break;
       case "most_typoed_articles":
+        this.currentObservable = MostTypoedArticlesObservable();
         break;
       default:
         break;
     }
+    this.currentSubscription = this.currentObservable.subscribe(
+      this.logWithUserPrompt.bind(this)
+    );
   }
-
-  currentSubscriber: Function = UpdateStatisticsGraphicSubscriber(
-    this.logWithUserPrompt.bind(this)
-  );
 
   actionsListener(data: Buffer) {
     const userInput = data.toString()[0];
@@ -198,13 +247,11 @@ class CLIConsumer {
         this.promptModeList();
         break;
       case "s":
-        this.currentSubscription?.unsubscribe();
         this.promptState();
         break;
       case "q":
         process.exit(0);
       default:
-        // this.logWithUserPrompt("");
         break;
     }
   }
@@ -235,14 +282,21 @@ class CLIConsumer {
     this.rxResolver();
     process.stdout.write(
       Object.entries(this.intervalSelectionActions)
-        .map((entry) => entry[0] + " " + entry[1])
+        .map((entry) => `${entry[0]} ${entry[1]}`)
         .join("\n")
     );
     process.stdout.write("\nSelect number for an interval: ");
   }
   promptState() {
+    console.clear();
     this.currentOperation = "stats_selection";
     this.rxResolver();
+    process.stdout.write(
+      Object.entries(this.stateSelectionActions)
+        .map((entry) => `${entry[0]} ${entry[1]}`)
+        .join("\n")
+    );
+    process.stdout.write("\nSelect number for an interval: ");
   }
 
   rootStdInListener(data: Buffer) {
@@ -257,6 +311,7 @@ class CLIConsumer {
         this.modeSelected(data);
         break;
       case "stats_selection":
+        this.stateSelected(data);
         break;
       default:
         this.actionsListener(data);
@@ -292,15 +347,9 @@ class CLIConsumer {
     if (selection == "1" || selection == "2" || selection == "3") {
       this.currentOperation = "";
       this.currentInterval =
-        selection === "1" ? "1m" : selection === "2" ? "30s" : "10s";
+        selection === "1" ? "min" : selection === "2" ? "sec_30" : "sec_10";
       this.rootStdInListener(Buffer.from(""));
-      this.currentObservable = GetMostActiveUserSubscription();
-      this.currentSubscriber = GetMostActiveUserSubscriber(
-        this.logWithUserPrompt.bind(this)
-      );
-      this.currentSubscription = this.currentObservable?.subscribe(
-        this.currentSubscriber.bind(this)
-      );
+      this.rxResolver();
       return;
     }
     // console.clear();
@@ -317,6 +366,23 @@ class CLIConsumer {
       .map((s) => s.trim());
     this.rootStdInListener(Buffer.from(""));
     this.rxResolver();
+  }
+  stateSelected(data: Buffer) {
+    const selection = data.toString()[0];
+    if (selection == "1" || selection == "2" || selection == "3") {
+      this.currentOperation = "";
+      this.currentState =
+        selection == "1"
+          ? "edit_types_statistics"
+          : selection == "2"
+          ? "most_active_users"
+          : "most_typoed_articles";
+      this.rootStdInListener(Buffer.from(""));
+      this.rxResolver();
+      return;
+    }
+    // console.clear();
+    else this.promptState();
   }
 }
 
