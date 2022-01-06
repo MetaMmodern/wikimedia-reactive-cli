@@ -1,5 +1,6 @@
 import MediaWikiRecentChangeEditEvent from "wikimedia-streams/build/streams/MediaWikiRecentChangeEvent";
 import { MostActiveUserStatistics, MostActiveUserEntry } from "./MostActiveUserStatisticsType"
+import { map } from "rxjs/operators";
 import { observable } from "../wikiSubscriber";
 
 declare type TimeIntervalType = 10000 | 30000 | 60000;
@@ -84,5 +85,4 @@ const updateMostActiveUsersStatistics = (data: MediaWikiRecentChangeEditEvent) =
     return finalValue;
 };
 
-const GenerateWikiMostActiveUsersStatisticsSubscription = () => observable.subscribe(updateMostActiveUsersStatistics);
-export { GenerateWikiMostActiveUsersStatisticsSubscription };
+export default observable.pipe(map(updateMostActiveUsersStatistics));

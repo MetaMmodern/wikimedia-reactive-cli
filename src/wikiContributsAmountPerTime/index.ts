@@ -1,8 +1,8 @@
 import MediaWikiRecentChangeEditEvent from "wikimedia-streams/build/streams/MediaWikiRecentChangeEvent";
 import { observable } from "../wikiSubscriber";
+import { map } from "rxjs/operators";
 
 let amountOfContributions: number = 0;
-
 let currentUser: string;
 let latestSecDate = Date.now();
 let seconds: number = 10000;
@@ -28,6 +28,7 @@ const GenerateWikiUserContributsAmountPerTime = (user : string, timeDelay: numbe
     currentUser = user
     amountOfContributions = 0
     seconds = timeDelay
-    observable.subscribe(updateWikiContributsAmountPerTime)
+
+    return observable.pipe(map(updateWikiContributsAmountPerTime));
 };
-export { GenerateWikiUserContributsAmountPerTime };
+export default GenerateWikiUserContributsAmountPerTime;
