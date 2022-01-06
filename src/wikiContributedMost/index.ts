@@ -23,7 +23,7 @@ const observable: Observable<MediaWikiRecentChangeEditEvent> = new Observable(
 const updateWikiTypoContributedTopic = (data: MediaWikiRecentChangeEditEvent) => {
     wikiTypoedArticles.set(data.title, wikiTypoedArticles.get(data.title) ?? 0 + 1);
 
-    finalValue.values = [...wikiTypoedArticles.entries()].sort((a, b) => a[1] - b[1]);
+    finalValue.values = [...wikiTypoedArticles.entries()].sort((a, b) => b[1] - a[1]);
 
     return finalValue.values.slice(0, 10);
 };
