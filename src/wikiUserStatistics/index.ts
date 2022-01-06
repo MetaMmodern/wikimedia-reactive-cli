@@ -1,7 +1,7 @@
 import { filter, map } from "rxjs/operators";
 import MediaWikiRecentChangeEditEvent from "wikimedia-streams/build/streams/MediaWikiRecentChangeEvent";
 import UserStatisticsType from "./UserStatisticsType";
-import { observable } from "../wikiSubscriber";
+import { observable } from "../recentChangesObservable";
 
 const wikiTypoedArticles: Map<string, number> = new Map();
 const finalValue: UserStatisticsType = new UserStatisticsType();

@@ -1,4 +1,4 @@
-import { Observable, Subscription, of, throttleTime, retry } from "rxjs";
+import { Subscription, of, retry, map, interval, timer } from "rxjs";
 import MostActiveUserStatistics from "../wikiMostActiveUser/MostActiveUserStatistics";
 import { MostActiveUserStatisticsType } from "../wikiMostActiveUser/MostActiveUserStatisticsType";
 import TypoedArticlesStatistics from "../wikiTypoedArticles/TypoedArticlesStatistics";
@@ -9,7 +9,7 @@ import wikiUserContributionsOverTime from "../wikiUserContributionsOverTime";
 import wikiUserStatistics from "../wikiUserStatistics";
 import UserStatisticsType from "../wikiUserStatistics/UserStatisticsType";
 
-const EMIT_FREQUENCY: number = 500;
+const EMIT_FREQUENCY: number = 100;
 class WikiEventsEmitter {
     userContributionsPerTimeSubscription: Subscription | undefined;
 
@@ -40,24 +40,21 @@ class WikiEventsEmitter {
     }
 
     GetTypoedArticlesStatistics() {
-        return of(this.typoedArticlesStatisticsValue).pipe(
-             throttleTime(EMIT_FREQUENCY),
-             retry()
+        return timer(0, 100).pipe(
+            map(_ => this.typoedArticlesStatisticsValue)
         );
     }
 
     GetMostActiveUserStatistics() {
-        return of(this.mostActiveUserStatisticsValue).pipe(
-            throttleTime(EMIT_FREQUENCY),
-            retry()
-       );
+        return timer(0, 100).pipe(
+            map(_ => this.mostActiveUserStatisticsValue)
+        );
     }
 
     GetUpdateTypesStatistics() {
-        return of(this.wikiEventStatisticsValue).pipe(
-            throttleTime(EMIT_FREQUENCY),
-            retry()
-       );
+        return timer(0, 100).pipe(
+            map(_ => this.wikiEventStatisticsValue)
+        );
     }
 
     GetUserStatistics(user: string) {

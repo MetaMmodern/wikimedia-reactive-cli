@@ -4,7 +4,7 @@ import {
   MostActiveUserEntry,
 } from "./MostActiveUserStatisticsType";
 import { map } from "rxjs/operators";
-import { observable } from "../wikiSubscriber";
+import { observable } from "../recentChangesObservable";
 
 declare type TimeIntervalType = 10000 | 30000 | 60000;
 const SEC_10 = 10000;

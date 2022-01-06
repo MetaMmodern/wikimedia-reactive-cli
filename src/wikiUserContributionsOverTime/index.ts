@@ -1,5 +1,5 @@
 import MediaWikiRecentChangeEditEvent from "wikimedia-streams/build/streams/MediaWikiRecentChangeEvent";
-import { observable } from "../wikiSubscriber";
+import { observable } from "../recentChangesObservable";
 import { filter, map, throttleTime } from "rxjs/operators";
 
 let amountOfContributions: number = 0;

@@ -176,7 +176,7 @@ class CLIConsumer {
     | "mode_selection"
     | "stats_selection"
     | "" = "";
-  currentInterval: "min" | "sec_30" | "sec_10" = "sec_10";
+  currentInterval: "sec_10" | "sec_30" | "min" = "sec_10";
   currentMode: "text" | "graph" = "graph";
   currentState:
     | "most_active_users"
@@ -340,7 +340,7 @@ class CLIConsumer {
     if (selection == "1" || selection == "2" || selection == "3") {
       this.currentOperation = "";
       this.currentInterval =
-        selection === "1" ? "min" : selection === "2" ? "sec_30" : "sec_10";
+        selection === "1" ? "sec_10" : selection === "2" ? "sec_30" : "min";
       this.rootStdInListener(Buffer.from(""));
       this.rxResolver();
       return;

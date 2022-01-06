@@ -1,7 +1,7 @@
 import { filter, map } from "rxjs/operators";
 import MediaWikiRecentChangeEditEvent from "wikimedia-streams/build/streams/MediaWikiRecentChangeEvent";
 import TypoedArticlesStatisticsType from "./TypoedArticlesStatisticsType";
-import { observable } from "../wikiSubscriber";
+import { observable } from "../recentChangesObservable";
 
 const wikiTypoedArticles: Map<string, number> = new Map();
 const finalValue: TypoedArticlesStatisticsType = new TypoedArticlesStatisticsType();
