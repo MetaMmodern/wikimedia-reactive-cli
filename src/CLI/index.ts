@@ -11,6 +11,7 @@ class CLIConsumer {
     "[i]": "interval",
     "[m]": "mode",
     "[s]": "stats",
+    "[q]": "quit",
   };
   readonly modeSelectionActions = {
     "[1]": "Text",
@@ -67,7 +68,7 @@ class CLIConsumer {
       // concatMap((item) => of(item).pipe(delay(100)))
     );
     this.currentSubscription = this.currentObservable.subscribe(
-      this.defaultSubscriber
+      this.defaultSubscriber.bind(this)
     );
   }
   defaultSubscriber(data: {
@@ -82,6 +83,7 @@ class CLIConsumer {
     this.logWithUserPrompt(
       drawChart([data.edit, data.log, data.categorize, data.new], {
         height: process.stdout.rows - 2,
+        colorsNames: ["yellow", "magenta", "blue", "red"],
       })
     );
   }
@@ -131,7 +133,7 @@ class CLIConsumer {
   }
 
   actionsListener(data: Buffer) {
-    // this.currentSubscription?.unsubscribe();
+    this.currentSubscription?.unsubscribe();
     const userInput = data.toString()[0];
     switch (userInput) {
       case "u":
@@ -164,12 +166,16 @@ class CLIConsumer {
 
   usersSelected(data: Buffer) {
     process.stdin.setRawMode(true);
+
     this.currentOperation = "";
     this.usersList = data
       .toString()
       .split(",")
       .map((s) => s.trim());
     this.rootStdInListener(Buffer.from(""));
+    this.currentSubscription = this.currentObservable?.subscribe(
+      this.defaultSubscriber.bind(this)
+    );
   }
 }
 
