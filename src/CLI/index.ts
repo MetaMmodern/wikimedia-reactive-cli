@@ -61,7 +61,8 @@ class CLIConsumer {
       // process.stdout.clearScreenDown();
       // console.log(data.edit);
       process.stdout.write("\n");
-      process.stdout.write(drawChart([data.edit], "blue"));
+      var data1 = data.edit.map((v) => v + 10)
+      process.stdout.write(drawChart([data.edit, data1], { height: 40}));
     });
   }
   rootStdInListener(data: Buffer) {
