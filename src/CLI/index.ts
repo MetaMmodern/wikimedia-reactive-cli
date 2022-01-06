@@ -59,7 +59,8 @@ class CLIConsumer {
     ).subscribe((data) => {
       process.stdout.moveCursor(0, -32);
       process.stdout.write("\n");
-      this.logWithUserPrompt(drawChart([data.edit], "blue"));
+      var data1 = data.edit.map((v) => v + 10);
+      process.stdout.write(drawChart([data.edit, data1], { height: 40 }));
     });
   }
   rootStdInListener(data: Buffer) {
