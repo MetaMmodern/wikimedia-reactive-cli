@@ -1,4 +1,4 @@
-import { Subscription, of, retry, map, interval, timer } from "rxjs";
+import { Subscription, map, timer } from "rxjs";
 import MostActiveUserStatistics from "../wikiMostActiveUser/MostActiveUserStatistics";
 import { MostActiveUserStatisticsType } from "../wikiMostActiveUser/MostActiveUserStatisticsType";
 import TypoedArticlesStatistics from "../wikiTypoedArticles/TypoedArticlesStatistics";
@@ -7,15 +7,8 @@ import UpdateTypesStatistics from "../wikiUpdateTypes/UpdateTypesStatistics";
 import { wikiEventStatisticsType } from "../wikiUpdateTypes/UpdateTypesStatisticsType";
 import wikiUserContributionsOverTime from "../wikiUserContributionsOverTime";
 import wikiUserStatistics from "../wikiUserStatistics";
-import UserStatisticsType from "../wikiUserStatistics/UserStatisticsType";
 
-const EMIT_FREQUENCY: number = 100;
 class WikiEventsEmitter {
-    userContributionsPerTimeSubscription: Subscription | undefined;
-
-    userStatisticsTypeSubsruption: Subscription | undefined;
-    userStatisticsValue: UserStatisticsType = new UserStatisticsType();
-
     typoedArticlesStatisticsSubscription: Subscription;
     typoedArticlesStatisticsValue: TypoedArticlesStatisticsType = new TypoedArticlesStatisticsType();
 
@@ -40,13 +33,13 @@ class WikiEventsEmitter {
     }
 
     GetTypoedArticlesStatistics() {
-        return timer(0, 100).pipe(
+        return timer(0, 500).pipe(
             map(_ => this.typoedArticlesStatisticsValue)
         );
     }
 
     GetMostActiveUserStatistics() {
-        return timer(0, 100).pipe(
+        return timer(0, 1000).pipe(
             map(_ => this.mostActiveUserStatisticsValue)
         );
     }
@@ -57,17 +50,9 @@ class WikiEventsEmitter {
         );
     }
 
-    GetUserStatistics(user: string) {
-        return this.userStatisticsTypeSubsruption = wikiUserStatistics(user).subscribe(
-            (data: UserStatisticsType) => this.userStatisticsValue = data
-        );
-    }
+    GetUserStatistics = (user: string) => wikiUserStatistics(user);
 
-    GetUserContributionsOverTime(user: string, timeDelay: number) {
-        return this.userStatisticsTypeSubsruption = wikiUserContributionsOverTime(user, timeDelay).subscribe(
-            (data: number) => data
-        );
-    }
+    GetUserContributionsOverTime = (user: string, timeDelay: number) => wikiUserContributionsOverTime(user, timeDelay);
 }
 
 export default new WikiEventsEmitter()
