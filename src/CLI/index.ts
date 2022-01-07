@@ -1,4 +1,5 @@
 import { Observable, Subscription } from "rxjs";
+import chalk from "chalk";
 
 import {
   UpdateStatisticsGraphObservable,
@@ -73,7 +74,7 @@ class CLIConsumer {
     );
   }
 
-  rxResolver() {
+  async rxResolver() {
     if (this.currentOperation !== "") {
       this.currentSubscription.unsubscribe();
       return;
@@ -95,15 +96,29 @@ class CLIConsumer {
         this.currentObservable = MostTypoedArticlesObservable();
         break;
       case "user_contributions_over_time":
-        this.currentObservable = UserContributionsOverTimeObservable(
-          this.currentUser,
-          this.GetIntervalValue()
-        );
+        if (this.currentUser == "") {
+          console.log(chalk.redBright("\nSpecify the user first."));
+          await new Promise((resolve) => {
+            setTimeout(resolve, 2000);
+          });
+        } else {
+          this.currentObservable = UserContributionsOverTimeObservable(
+            this.currentUser,
+            this.GetIntervalValue()
+          );
+        }
         break;
       case "user_contributions_statistics":
-        this.currentObservable = UserContributionsStatisticsObservable(
-          this.currentUser
-        );
+        if (this.currentUser == "") {
+          console.log(chalk.redBright("\nSpecify the user first."));
+          await new Promise((resolve) => {
+            setTimeout(resolve, 2000);
+          });
+        } else {
+          this.currentObservable = UserContributionsStatisticsObservable(
+            this.currentUser
+          );
+        }
         break;
       default:
         break;
