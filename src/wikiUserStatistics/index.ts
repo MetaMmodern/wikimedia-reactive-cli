@@ -5,15 +5,11 @@ import { observable } from "../recentChangesObservable";
 
 const wikiTypoedArticles: Map<string, number> = new Map();
 const finalValue: UserStatisticsType = new UserStatisticsType();
-let currentUser: string;
 
 const updateUserStatistics = (
   data: MediaWikiRecentChangeEditEvent
 ) => {
-  wikiTypoedArticles.set(
-    data.title,
-    wikiTypoedArticles.get(data.title) ?? 0 + 1
-  );
+  wikiTypoedArticles.set(data.title, (wikiTypoedArticles.get(data.title) ?? 0) + 1);
 
   finalValue.topArticleContributions = [...wikiTypoedArticles.entries()].sort((a, b) => b[1] - a[1]).slice(0, 10);
 
@@ -26,10 +22,8 @@ const updateUserStatistics = (
 };
 
 export default (user: string) => {
-  currentUser = user;
-
   return observable.pipe(
-    filter((data: MediaWikiRecentChangeEditEvent) => data.user == currentUser),
+    filter((data: MediaWikiRecentChangeEditEvent) => data.user == user),
     map(updateUserStatistics)
   );
 };

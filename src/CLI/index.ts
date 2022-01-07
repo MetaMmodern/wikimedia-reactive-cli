@@ -137,6 +137,29 @@ const UserContributionsOverTimeObservable = (user: string, timeDelay: number) =>
   );
 };
 
+const UserContributionsStatisticsObservable = (user: string) => {
+  return wikiEventsEmitter.GetUserStatistics(user).pipe(
+    map((el) => {
+      const userNameString = `User: ${chalk.cyanBright(
+        user
+      )}\n`;
+      const contentAdditionString = `contentAddition: ${chalk.cyanBright(
+        el.contentAddition
+      )}\n`;
+      const typosEditingString = `typosEditing: ${chalk.cyanBright(
+        el.typosEditing
+      )}\n`;
+      const topArticles = new Table({
+        head: ["Article", "Contributions"],
+      });
+      el.topArticleContributions.forEach((article) =>
+        topArticles.push([article[0], article[1]])
+      );
+      return userNameString + contentAdditionString + typosEditingString + topArticles.toString();
+    })
+  );
+};
+
 const MostTypoedArticlesObservable = () => {
   return wikiEventsEmitter.GetTypoedArticlesStatistics().pipe(
     map((el) => {
@@ -177,6 +200,7 @@ class CLIConsumer {
     "[2]": "Top active users",
     "[3]": "Most typoed articles",
     "[4]": "User contributions over time",
+    "[5]": "User contributions statistics",
   };
   currentOperation:
     | "user_selection"
@@ -185,16 +209,17 @@ class CLIConsumer {
     | "stats_selection"
     | "" = "";
   currentInterval: "sec_1" | "sec_10" | "sec_30" | "min" = "sec_10";
-  GetIntervalValue = () => { 
+  GetIntervalValue = () => {
     return this.currentInterval == "sec_1" ? 1000 : this.currentInterval == "sec_10" ? 10000 : this.currentInterval == "sec_30" ? 30000 : 60000;
   }
   currentMode: "text" | "graph" = "graph";
   currentState:
+    | "user_contributions_statistics"
     | "user_contributions_over_time"
     | "most_active_users"
     | "most_typoed_articles"
     | "edit_types_statistics" = "edit_types_statistics";
-  usersList: string[] = [];
+  currentUser: string = "";
   showsStats: boolean = false;
   statsType: string = "";
   currentObservable: Observable<string>;
@@ -232,7 +257,10 @@ class CLIConsumer {
         this.currentObservable = MostTypoedArticlesObservable();
         break;
       case "user_contributions_over_time":
-        this.currentObservable = UserContributionsOverTimeObservable(this.usersList[0], this.GetIntervalValue());
+        this.currentObservable = UserContributionsOverTimeObservable(this.currentUser, this.GetIntervalValue());
+        break;
+      case "user_contributions_statistics":
+        this.currentObservable = UserContributionsStatisticsObservable(this.currentUser);
         break;
       default:
         break;
@@ -246,7 +274,7 @@ class CLIConsumer {
     const userInput = data.toString()[0];
     switch (userInput) {
       case "u":
-        this.promptUsersList();
+        this.promptUser();
         break;
       case "i":
         this.promptIntervalList();
@@ -264,12 +292,12 @@ class CLIConsumer {
     }
   }
 
-  promptUsersList() {
+  promptUser() {
     process.stdin.setRawMode(false);
     console.clear();
     this.currentOperation = "user_selection";
     this.rxResolver();
-    process.stdout.write("Enter coma separated users filter list: ");
+    process.stdout.write("Enter user: ");
   }
 
   promptModeList() {
@@ -295,7 +323,7 @@ class CLIConsumer {
     );
     process.stdout.write("\nSelect number for an interval: ");
   }
-  
+
   promptState() {
     console.clear();
     this.currentOperation = "stats_selection";
@@ -357,12 +385,12 @@ class CLIConsumer {
       this.currentOperation = "";
       this.currentInterval =
         selection === "1"
-        ? "sec_1"
-        : selection === "2"
-        ? "sec_10"
-        : selection === "3"
-        ? "sec_30"
-        : "min";
+          ? "sec_1"
+          : selection === "2"
+            ? "sec_10"
+            : selection === "3"
+              ? "sec_30"
+              : "min";
       this.rootStdInListener(Buffer.from(""));
       this.rxResolver();
       return;
@@ -375,26 +403,25 @@ class CLIConsumer {
     process.stdin.setRawMode(true);
 
     this.currentOperation = "";
-    this.usersList = data
-      .toString()
-      .split(",")
-      .map((s) => s.trim());
+    this.currentUser = data.toString().trim();
     this.rootStdInListener(Buffer.from(""));
     this.rxResolver();
   }
 
   stateSelected(data: Buffer) {
     const selection = data.toString()[0];
-    if (selection == "1" || selection == "2" || selection == "3" || selection == "4") {
+    if (selection == "1" || selection == "2" || selection == "3" || selection == "4" || selection == "5") {
       this.currentOperation = "";
       this.currentState =
         selection == "1"
           ? "edit_types_statistics"
           : selection == "2"
-          ? "most_active_users"
-          : selection == "3"
-          ? "most_typoed_articles"
-          : "user_contributions_over_time";
+            ? "most_active_users"
+            : selection == "3"
+              ? "most_typoed_articles"
+              : selection == "4"
+                ? "user_contributions_over_time"
+                : "user_contributions_statistics";
       this.rootStdInListener(Buffer.from(""));
       this.rxResolver();
       return;
