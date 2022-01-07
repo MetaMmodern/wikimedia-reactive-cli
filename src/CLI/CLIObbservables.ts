@@ -170,7 +170,7 @@ export const MostTypoedArticlesObservable = () => {
         el.totalSize
       )} articles.\n`;
       const topArticles = new Table({
-        head: ["Name", "???Nik"],
+        head: ["Article", "Edits"],
       });
       el.values.forEach((article) =>
         topArticles.push([article[0], article[1]])
