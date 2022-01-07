@@ -5,39 +5,15 @@ import { interval, Observable, Subscription } from "rxjs";
 import Table from "cli-table";
 import wikiEventsEmitter from "../wikiEventsEmitter";
 
-// 4 messages edit new log categorize (text/mode)
-const UpdateStatisticsObservable = () => {
-  return wikiEventsEmitter.GetUpdateTypesStatistics().pipe(
-    scan(
-      (acc, cur) => {
-        return {
-          new: [...acc.new, cur.new],
-          edit: [...acc.edit, cur.edit],
-          log: [...acc.log, cur.log],
-          categorize: [...acc.categorize, cur.categorize],
-        };
-      },
-      { new: [], log: [], edit: [], categorize: [] } as {
-        new: number[];
-        log: number[];
-        edit: number[];
-        categorize: number[];
-      }
-    ),
-    throttle(() => interval(500))
-    // concatMap((item) => of(item).pipe(delay(100)))
-  );
-};
-
 const UpdateStatisticsTextObservable = () => {
   return wikiEventsEmitter.GetUpdateTypesStatistics().pipe(
     scan(
-      (acc, cur) => {
+      (_acc, cur) => {
         return {
-          new: [...acc.new, cur.new],
-          edit: [...acc.edit, cur.edit],
-          log: [...acc.log, cur.log],
-          categorize: [...acc.categorize, cur.categorize],
+          new: [cur.new],
+          edit: [cur.edit],
+          log: [cur.log],
+          categorize: [cur.categorize],
         };
       },
       { new: [], log: [], edit: [], categorize: [] } as {
