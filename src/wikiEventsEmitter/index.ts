@@ -9,6 +9,9 @@ import wikiUserContributionsOverTime from "../wikiUserContributionsOverTime";
 import wikiUserStatistics from "../wikiUserStatistics";
 
 class WikiEventsEmitter {
+    userContributionsOverTimeSubscription: Subscription | undefined;
+    userContributionsOverTimeValue: number = 0;
+
     typoedArticlesStatisticsSubscription: Subscription;
     typoedArticlesStatisticsValue: TypoedArticlesStatisticsType = new TypoedArticlesStatisticsType();
 
@@ -50,9 +53,22 @@ class WikiEventsEmitter {
         );
     }
 
-    GetUserStatistics = (user: string) => wikiUserStatistics(user);
+    GetUserContributionsOverTime(user: string, timeDelay: number) {
+        this.userContributionsOverTimeSubscription = wikiUserContributionsOverTime(user).subscribe(
+            (data: number) => this.userContributionsOverTimeValue += data
+        );
 
-    GetUserContributionsOverTime = (user: string, timeDelay: number) => wikiUserContributionsOverTime(user, timeDelay);
+        return timer(timeDelay, timeDelay).pipe(
+            map(_ => {
+                const returnValue = this.userContributionsOverTimeValue;
+                this.userContributionsOverTimeValue = 0;
+                return returnValue;
+            })
+        );
+    }
+
+    GetUserStatistics = (user: string) => wikiUserStatistics(user);
 }
 
-export default new WikiEventsEmitter()
+const wikiEventsEmitter = new WikiEventsEmitter();
+export default wikiEventsEmitter;

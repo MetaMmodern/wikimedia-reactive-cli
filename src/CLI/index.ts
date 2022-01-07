@@ -107,6 +107,37 @@ const MostActiveUsersObservable = (inteval: "min" | "sec_10" | "sec_30") => {
   );
 };
 
+const UserContributionsOverTimeObservable = (user: string, timeDelay: number) => {
+  return wikiEventsEmitter.GetUserContributionsOverTime(user, timeDelay).pipe(
+    scan(
+      (acc, cur) => {
+        return {
+          contributions: [...acc.contributions, cur == 0 ? 0.01 : cur],
+        };
+      },
+      { contributions: [] } as {
+        contributions: number[];
+      }
+    ),
+    throttle(() => interval(500)),
+    map((data) => {
+      const chart = drawChart(
+        [data.contributions],
+        {
+          height: process.stdout.rows - 3,
+          colorsNames: ["green"],
+        }
+      );
+      const square = "■";
+
+      let legend = chalk.green(square + "Contributions");
+      const pad = " ".repeat(process.stdout.columns / 2 - legend.length / 2);
+      legend = pad + legend;
+      return chart + "\n" + legend;
+    })
+  );
+};
+
 const MostTypoedArticlesObservable = () => {
   return wikiEventsEmitter.GetTypoedArticlesStatistics().pipe(
     map((el) => {
@@ -145,6 +176,7 @@ class CLIConsumer {
     "[1]": "Show Edit Statistics",
     "[2]": "Top active users",
     "[3]": "Most typoed articles",
+    "[4]": "User contributions over time",
   };
   currentOperation:
     | "user_selection"
@@ -153,8 +185,12 @@ class CLIConsumer {
     | "stats_selection"
     | "" = "";
   currentInterval: "sec_10" | "sec_30" | "min" = "sec_10";
+  GetIntervalValue = () => { 
+    return this.currentInterval == "sec_10" ? 10000 : this.currentInterval == "sec_30" ? 30000 : 60000;
+  }
   currentMode: "text" | "graph" = "graph";
   currentState:
+    | "user_contributions_over_time"
     | "most_active_users"
     | "most_typoed_articles"
     | "edit_types_statistics" = "edit_types_statistics";
@@ -194,6 +230,9 @@ class CLIConsumer {
         break;
       case "most_typoed_articles":
         this.currentObservable = MostTypoedArticlesObservable();
+        break;
+      case "user_contributions_over_time":
+        this.currentObservable = UserContributionsOverTimeObservable(this.usersList[0], this.GetIntervalValue());
         break;
       default:
         break;
@@ -256,6 +295,7 @@ class CLIConsumer {
     );
     process.stdout.write("\nSelect number for an interval: ");
   }
+  
   promptState() {
     console.clear();
     this.currentOperation = "stats_selection";
@@ -336,16 +376,19 @@ class CLIConsumer {
     this.rootStdInListener(Buffer.from(""));
     this.rxResolver();
   }
+
   stateSelected(data: Buffer) {
     const selection = data.toString()[0];
-    if (selection == "1" || selection == "2" || selection == "3") {
+    if (selection == "1" || selection == "2" || selection == "3" || selection == "4") {
       this.currentOperation = "";
       this.currentState =
         selection == "1"
           ? "edit_types_statistics"
           : selection == "2"
           ? "most_active_users"
-          : "most_typoed_articles";
+          : selection == "3"
+          ? "most_typoed_articles"
+          : "user_contributions_over_time";
       this.rootStdInListener(Buffer.from(""));
       this.rxResolver();
       return;
