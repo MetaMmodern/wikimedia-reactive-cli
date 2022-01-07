@@ -88,7 +88,9 @@ const UpdateStatisticsGraphObservable = () => {
 };
 
 // (list: time, user, contributions)
-const MostActiveUsersObservable = (inteval: "min" | "sec_30" | "sec_10" | "sec_1") => {
+const MostActiveUsersObservable = (
+  inteval: "min" | "sec_30" | "sec_10" | "sec_1"
+) => {
   return wikiEventsEmitter.GetMostActiveUserStatistics().pipe(
     throttle(() => interval(1000)),
     map((v) => v[inteval]),
@@ -107,7 +109,10 @@ const MostActiveUsersObservable = (inteval: "min" | "sec_30" | "sec_10" | "sec_1
   );
 };
 
-const UserContributionsOverTimeObservable = (user: string, timeDelay: number) => {
+const UserContributionsOverTimeObservable = (
+  user: string,
+  timeDelay: number
+) => {
   return wikiEventsEmitter.GetUserContributionsOverTime(user, timeDelay).pipe(
     scan(
       (acc, cur) => {
@@ -120,16 +125,12 @@ const UserContributionsOverTimeObservable = (user: string, timeDelay: number) =>
       }
     ),
     map((data) => {
-      const chart = drawChart(
-        [data.contributions],
-        {
-          height: process.stdout.rows - 3,
-          colorsNames: ["green"],
-        }
-      );
-      const square = "■";
+      const chart = drawChart([data.contributions], {
+        height: process.stdout.rows - 3,
+        colorsNames: ["green"],
+      });
 
-      let legend = chalk.green(square + "Contributions");
+      let legend = chalk.green(`■ Contributions by \"${user}\"`);
       const pad = " ".repeat(process.stdout.columns / 2 - legend.length / 2);
       legend = pad + legend;
       return chart + "\n" + legend;
@@ -140,9 +141,7 @@ const UserContributionsOverTimeObservable = (user: string, timeDelay: number) =>
 const UserContributionsStatisticsObservable = (user: string) => {
   return wikiEventsEmitter.GetUserStatistics(user).pipe(
     map((el) => {
-      const userNameString = `User: ${chalk.cyanBright(
-        user
-      )}\n`;
+      const userNameString = `User: ${chalk.cyanBright(user)}\n`;
       const contentAdditionString = `contentAddition: ${chalk.cyanBright(
         el.contentAddition
       )}\n`;
@@ -155,7 +154,12 @@ const UserContributionsStatisticsObservable = (user: string) => {
       el.topArticleContributions.forEach((article) =>
         topArticles.push([article[0], article[1]])
       );
-      return userNameString + contentAdditionString + typosEditingString + topArticles.toString();
+      return (
+        userNameString +
+        contentAdditionString +
+        typosEditingString +
+        topArticles.toString()
+      );
     })
   );
 };
@@ -210,8 +214,14 @@ class CLIConsumer {
     | "" = "";
   currentInterval: "sec_1" | "sec_10" | "sec_30" | "min" = "sec_10";
   GetIntervalValue = () => {
-    return this.currentInterval == "sec_1" ? 1000 : this.currentInterval == "sec_10" ? 10000 : this.currentInterval == "sec_30" ? 30000 : 60000;
-  }
+    return this.currentInterval == "sec_1"
+      ? 1000
+      : this.currentInterval == "sec_10"
+      ? 10000
+      : this.currentInterval == "sec_30"
+      ? 30000
+      : 60000;
+  };
   currentMode: "text" | "graph" = "graph";
   currentState:
     | "user_contributions_statistics"
@@ -257,10 +267,15 @@ class CLIConsumer {
         this.currentObservable = MostTypoedArticlesObservable();
         break;
       case "user_contributions_over_time":
-        this.currentObservable = UserContributionsOverTimeObservable(this.currentUser, this.GetIntervalValue());
+        this.currentObservable = UserContributionsOverTimeObservable(
+          this.currentUser,
+          this.GetIntervalValue()
+        );
         break;
       case "user_contributions_statistics":
-        this.currentObservable = UserContributionsStatisticsObservable(this.currentUser);
+        this.currentObservable = UserContributionsStatisticsObservable(
+          this.currentUser
+        );
         break;
       default:
         break;
@@ -381,16 +396,21 @@ class CLIConsumer {
 
   intervalSelected(data: Buffer) {
     const selection = data.toString()[0];
-    if (selection == "1" || selection == "2" || selection == "3" || selection == "4") {
+    if (
+      selection == "1" ||
+      selection == "2" ||
+      selection == "3" ||
+      selection == "4"
+    ) {
       this.currentOperation = "";
       this.currentInterval =
         selection === "1"
           ? "sec_1"
           : selection === "2"
-            ? "sec_10"
-            : selection === "3"
-              ? "sec_30"
-              : "min";
+          ? "sec_10"
+          : selection === "3"
+          ? "sec_30"
+          : "min";
       this.rootStdInListener(Buffer.from(""));
       this.rxResolver();
       return;
@@ -410,18 +430,24 @@ class CLIConsumer {
 
   stateSelected(data: Buffer) {
     const selection = data.toString()[0];
-    if (selection == "1" || selection == "2" || selection == "3" || selection == "4" || selection == "5") {
+    if (
+      selection == "1" ||
+      selection == "2" ||
+      selection == "3" ||
+      selection == "4" ||
+      selection == "5"
+    ) {
       this.currentOperation = "";
       this.currentState =
         selection == "1"
           ? "edit_types_statistics"
           : selection == "2"
-            ? "most_active_users"
-            : selection == "3"
-              ? "most_typoed_articles"
-              : selection == "4"
-                ? "user_contributions_over_time"
-                : "user_contributions_statistics";
+          ? "most_active_users"
+          : selection == "3"
+          ? "most_typoed_articles"
+          : selection == "4"
+          ? "user_contributions_over_time"
+          : "user_contributions_statistics";
       this.rootStdInListener(Buffer.from(""));
       this.rxResolver();
       return;
