@@ -26,7 +26,7 @@ let latestMinuteDate = new Date();
 
 const UpdateUsersEdits = (user: string) => {
   const updateUserEditsMap = (user: string, map: Map<string, number>) => {
-      map.set(user, (map.get(user) ?? 0) + 1);
+    map.set(user, (map.get(user) ?? 0) + 1);
   };
 
   updateUserEditsMap(user, sec1Map);

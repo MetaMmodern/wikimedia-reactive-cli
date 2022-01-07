@@ -1,7 +1,8 @@
 import MediaWikiRecentChangeEditEvent from "wikimedia-streams/build/streams/MediaWikiRecentChangeEvent";
 import { wikiEventStatisticsType } from "./UpdateTypesStatisticsType";
-import { observable } from "../recentChangesObservable";
+
 import { map } from "rxjs/operators";
+import { observable } from "../recentChangesObservable";
 
 const finalValue: wikiEventStatisticsType = new wikiEventStatisticsType();
 
