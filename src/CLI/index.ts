@@ -88,9 +88,9 @@ const UpdateStatisticsGraphObservable = () => {
 };
 
 // (list: time, user, contributions)
-const MostActiveUsersObservable = (inteval: "min" | "sec_10" | "sec_30") => {
+const MostActiveUsersObservable = (inteval: "min" | "sec_30" | "sec_10" | "sec_1") => {
   return wikiEventsEmitter.GetMostActiveUserStatistics().pipe(
-    throttle(() => interval(10000)),
+    throttle(() => interval(1000)),
     map((v) => v[inteval]),
     map((v) => {
       const table = new Table({
@@ -112,14 +112,13 @@ const UserContributionsOverTimeObservable = (user: string, timeDelay: number) =>
     scan(
       (acc, cur) => {
         return {
-          contributions: [...acc.contributions, cur == 0 ? 0.01 : cur],
+          contributions: [...acc.contributions, cur],
         };
       },
       { contributions: [] } as {
         contributions: number[];
       }
     ),
-    throttle(() => interval(500)),
     map((data) => {
       const chart = drawChart(
         [data.contributions],
@@ -168,9 +167,10 @@ class CLIConsumer {
     "[2]": "Graph",
   };
   readonly intervalSelectionActions = {
-    "[1]": "10 seconds",
-    "[2]": "30 seconds",
-    "[3]": "1 minute",
+    "[1]": "1 second",
+    "[2]": "10 seconds",
+    "[3]": "30 seconds",
+    "[4]": "1 minute",
   };
   readonly stateSelectionActions = {
     "[1]": "Show Edit Statistics",
@@ -184,9 +184,9 @@ class CLIConsumer {
     | "mode_selection"
     | "stats_selection"
     | "" = "";
-  currentInterval: "sec_10" | "sec_30" | "min" = "sec_10";
+  currentInterval: "sec_1" | "sec_10" | "sec_30" | "min" = "sec_10";
   GetIntervalValue = () => { 
-    return this.currentInterval == "sec_10" ? 10000 : this.currentInterval == "sec_30" ? 30000 : 60000;
+    return this.currentInterval == "sec_1" ? 1000 : this.currentInterval == "sec_10" ? 10000 : this.currentInterval == "sec_30" ? 30000 : 60000;
   }
   currentMode: "text" | "graph" = "graph";
   currentState:
@@ -353,10 +353,16 @@ class CLIConsumer {
 
   intervalSelected(data: Buffer) {
     const selection = data.toString()[0];
-    if (selection == "1" || selection == "2" || selection == "3") {
+    if (selection == "1" || selection == "2" || selection == "3" || selection == "4") {
       this.currentOperation = "";
       this.currentInterval =
-        selection === "1" ? "sec_10" : selection === "2" ? "sec_30" : "min";
+        selection === "1"
+        ? "sec_1"
+        : selection === "2"
+        ? "sec_10"
+        : selection === "3"
+        ? "sec_30"
+        : "min";
       this.rootStdInListener(Buffer.from(""));
       this.rxResolver();
       return;

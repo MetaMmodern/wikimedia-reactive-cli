@@ -6,6 +6,7 @@ export interface MostActiveUserEntryValue {
 }
 
 export interface MostActiveUserReturnValue {
+    sec_1: Array<MostActiveUserEntryValue>,
     sec_10: Array<MostActiveUserEntryValue>,
     sec_30: Array<MostActiveUserEntryValue>,
     min: Array<MostActiveUserEntryValue>,
@@ -19,6 +20,7 @@ export class MostActiveUserEntry {
 }
 
 export class MostActiveUserStatisticsType implements MostActiveUserReturnValue {
+    sec_1 = new Array<MostActiveUserEntryValue>();
     sec_10 = new Array<MostActiveUserEntryValue>();
     sec_30 = new Array<MostActiveUserEntryValue>();
     min = new Array<MostActiveUserEntryValue>();

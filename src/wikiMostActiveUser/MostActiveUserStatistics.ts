@@ -6,17 +6,20 @@ import {
 import { map } from "rxjs/operators";
 import { observable } from "../recentChangesObservable";
 
-declare type TimeIntervalType = 10000 | 30000 | 60000;
+declare type TimeIntervalType = 1000 | 10000 | 30000 | 60000;
+const SEC_1 = 1000;
 const SEC_10 = 10000;
 const SEC_30 = 30000;
 const MINUTE = 60000;
 
 const finalValue: MostActiveUserStatisticsType =
   new MostActiveUserStatisticsType();
+const sec1Map = new Map<string, number>();
 const sec10Map = new Map<string, number>();
 const sec30Map = new Map<string, number>();
 const minuteMap = new Map<string, number>();
 
+let latestSec1Date = new Date();
 let latestSec10Date = new Date();
 let latestSec30Date = new Date();
 let latestMinuteDate = new Date();
@@ -26,6 +29,7 @@ const UpdateUsersEdits = (user: string) => {
       map.set(user, (map.get(user) ?? 0) + 1);
   };
 
+  updateUserEditsMap(user, sec1Map);
   updateUserEditsMap(user, sec10Map);
   updateUserEditsMap(user, sec30Map);
   updateUserEditsMap(user, minuteMap);
@@ -37,6 +41,8 @@ const GetMostActiveUserOnInterval = (
 ): MostActiveUserEntry => {
   const GetSelectedMap = (time: TimeIntervalType) => {
     switch (time) {
+      case SEC_1:
+        return sec1Map;
       case SEC_10:
         return sec10Map;
       case SEC_30:
@@ -47,6 +53,8 @@ const GetMostActiveUserOnInterval = (
   };
   const GetFromDate = (time: TimeIntervalType) => {
     switch (time) {
+      case SEC_1:
+        return latestSec1Date;
       case SEC_10:
         return latestSec10Date;
       case SEC_30:
@@ -78,6 +86,10 @@ const updateMostActiveUsersStatistics = (
   UpdateUsersEdits(data.user);
 
   const date = new Date();
+  if (date.getTime() - latestSec1Date.getTime() >= SEC_1) {
+    finalValue.sec_1.push(GetMostActiveUserOnInterval(SEC_1, date));
+    latestSec1Date = date;
+  }
   if (date.getTime() - latestSec10Date.getTime() >= SEC_10) {
     finalValue.sec_10.push(GetMostActiveUserOnInterval(SEC_10, date));
     latestSec10Date = date;
